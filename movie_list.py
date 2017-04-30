@@ -1,5 +1,5 @@
-import urllib
-from urllib2 import Request, urlopen, URLError
+import urllib.request
+import urllib.parse
 import json
 import pandas as pd
 import os
@@ -14,11 +14,11 @@ ratings = []
 
 #Function to get imdb id from input file name
 def get_imdb_id(input):
-  query = urllib.quote_plus(input)
+  query = urllib.parse.quote(input)
   url = "http://www.imdb.com/find?ref_=nv_sr_fn&q="+query+"&s=all"
   page = requests.get(url)
   tree = html.fromstring(page.content)
-  
+
   if "No results" in (tree.xpath('//h1[@class="findHeader"]/text()')[0]):
     imdb_id = "tt00000"
   else:
@@ -29,12 +29,12 @@ def get_imdb_id(input):
 
 #Function to get genre, plot and ratings from imdb id
 def get_info(id):
-  omdb_request = Request('http://www.omdbapi.com/?i='+id+'&y=&plot=short&r=json')
-  response = urlopen(omdb_request)
+  omdb_request = urllib.request.Request('http://www.omdbapi.com/?i='+id+'&y=&plot=short&r=json')
+  response = urllib.request.urlopen(omdb_request)
   data = response.read()
   d = json.loads(data)
-  
-  if 'False' in data:
+
+  if 0 in data:
     message = "No Results Found"
     genre.append(message)
     plot.append(message)
@@ -45,15 +45,15 @@ def get_info(id):
     ratings.append(d['imdbRating'])
 
 def main():
-  filepath = raw_input("Enter Path:")
+  filepath = input("Enter Path:")
   for file in os.listdir(filepath):
     print(file)
     get_info(get_imdb_id(file))
     movie_names.append(file)
-    
+
   df = pd.DataFrame({'Movie Name': movie_names, 'Genre': genre, 'Plot': plot, 'Ratings': ratings})
-  df.toexcel('movies.xls', sheet_name='movies', index=False)
-  
+  df.to_excel('movies.xls', sheet_name='movies', index=False)
+
 if __name__ == "__main__":
     main()
   
